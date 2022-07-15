@@ -1,6 +1,7 @@
+const getUser = require("../twitter");
 
 
-const readPdfFile = (text, numpages) => {
+const readPdfFile = async (text, numpages) => {
 
     let pageValues = []
 
@@ -20,7 +21,7 @@ const readPdfFile = (text, numpages) => {
             );
         }
 
-        const values = pageToArray(page)
+        const values = await pageToArray(page)
         pageValues = pageValues.concat(values)
     }
 
@@ -30,7 +31,7 @@ const readPdfFile = (text, numpages) => {
 
 let num = '1234567890'
 
-const pageToArray = (page) => {
+const pageToArray = async (page) => {
     let values = [];
 
     let start = page.substring(
@@ -72,8 +73,9 @@ const pageToArray = (page) => {
             start.length
         );
         const link = `https://twitter.com/${username}`
+        const description = await getUser(username)
 
-        values[i] = [name, username, link, audience, ...values[i]]
+        values[i] = [name, description, username, link, audience, ...values[i]]
     }
 
 

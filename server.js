@@ -3,9 +3,7 @@ const pdfparse = require('pdf-parse')
 const upload = require('express-fileupload')
 const { google } = require("googleapis")
 const { GoogleAuth } = require("google-auth-library");
-const generatePublicURL = require("./middleware/PublicURL");
 const readPdfFile = require("./middleware/ReadPdf");
-
 
 const app = express()
 app.set('view engine', 'pug')
@@ -15,15 +13,14 @@ app.use(upload())
 app.get('/', async (req, res) => {
     res.render('index')
 })
-
-
+// require('./twitter')
 app.post('/upload', (req, res) => {
     if (req.files) {
 
         const file = req.files.pdf
 
         pdfparse(file).then(async (data) => {
-            const values = readPdfFile(data.text, data.numpages)
+            const values = await readPdfFile(data.text, data.numpages)
             const auth = new GoogleAuth({
                 keyFile: "credentials.json",
                 scopes: "https://www.googleapis.com/auth/spreadsheets",
@@ -60,10 +57,10 @@ app.post('/upload', (req, res) => {
             await service.spreadsheets.values.append({
                 auth,
                 spreadsheetId,
-                range: "Sheet1!A:E",
+                range: "Sheet1!A:F",
                 valueInputOption: "USER_ENTERED",
                 resource: {
-                    values: [["Twitter Name", "Username", "link", "Audience", "Mentions"]]
+                    values: [["Twitter Name", "Description", "Username", "link", "Audience", "Mentions"]]
                 }
             })
             await service.spreadsheets.values.append({
@@ -81,6 +78,7 @@ app.post('/upload', (req, res) => {
 
     }
 })
+
 const port = process.env.PORT
 
 app.listen(port, () => {
