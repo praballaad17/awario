@@ -19,7 +19,7 @@ const getUser = async (username) => {
             return ""
 
     } catch (error) {
-        console.log(error);
+        console.log("error");
     }
 
 }

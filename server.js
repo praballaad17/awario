@@ -4,6 +4,7 @@ const upload = require('express-fileupload')
 const { google } = require("googleapis")
 const { GoogleAuth } = require("google-auth-library");
 const readPdfFile = require("./middleware/ReadPdf");
+const { create, generatePublicURL } = require("./googleSheet");
 
 const app = express()
 app.set('view engine', 'pug')
@@ -29,35 +30,22 @@ app.post('/upload', (req, res) => {
             const client = await auth.getClient()
 
             const service = google.sheets({ version: "v4", auth: client })
-            let spreadsheetId = '16fsS56K-q1wYoC2vHMlfhHDAC8nvpDWpCGi2iAYT3PA'
-            let spreadsheet
-            // //create a google sheet
-            // const resource = {
-            //     properties: {
-            //         title: "title",
-            //     },
-            // }
-            // try {
-            //     spreadsheet = await service.spreadsheets.create({
-            //         auth,
-            //         resource,
-            //         fields: 'spreadsheetId',
-            //     });
-            //     console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
-            //     spreadsheetId = spreadsheet.data.spreadsheetId
-            // } catch (err) {
-            //     // TODO (developer) - Handle exception
-            //     console.log(err);
-            // }
+            let spreadsheetId = await create()
 
 
-
+            const url = await generatePublicURL(spreadsheetId)
+            console.log(url);
+            //get shpreedsheet
+            const metaData = await service.spreadsheets.get({
+                auth,
+                spreadsheetId
+            })
 
             // write rows to spreadsheet
             await service.spreadsheets.values.append({
                 auth,
                 spreadsheetId,
-                range: "Sheet1!A:F",
+                range: "data!A:F",
                 valueInputOption: "USER_ENTERED",
                 resource: {
                     values: [["Twitter Name", "Description", "Username", "link", "Audience", "Mentions"]]
@@ -66,14 +54,17 @@ app.post('/upload', (req, res) => {
             await service.spreadsheets.values.append({
                 auth,
                 spreadsheetId,
-                range: "Sheet1!A:E",
+                range: "data!A:E",
                 valueInputOption: "USER_ENTERED",
                 resource: {
                     values: values
                 }
             })
 
-            return res.json(data)
+            //  res.json({ data, metaData })
+            return res.render('sheet', {
+                url
+            })
         })
 
     }
